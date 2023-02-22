@@ -22,4 +22,4 @@ Following are phases identified so far with the help of my mentor Glenn Sarti:
 
 Hashicorp has a good tutorial around how to use Vault SDK to create a customer secret engine here: https://developer.hashicorp.com/vault/tutorials/custom-secrets-engine. We would use similar approach to build this plugin.
 
-As a learning, we will build tests around this code and test some basic functionalities. 
+The current state of implementation can be find in `status.md`  
