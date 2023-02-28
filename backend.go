@@ -1,4 +1,4 @@
-package vaultcustomsupportplugin
+package main
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 
 // factory function to setup a backend in vault
 // this is mandatory function and should include call to setup backend
-func Factory(ctx context.Context, conf *logical.BackendConfig) (logical.Backend, error) {
+func Factory(ctx context.Context, conf *logical.BackendConfig) (logical.Backend, string) {
 	b := backend()
 	if err := b.Setup(ctx, conf); err != nil {
 		return nil, err
@@ -25,8 +25,8 @@ type mordorBackend struct {
 	*framework.Backend
 	// check what RWMutex do?
 	// calling https://pkg.go.dev/sync#RWMutex.
-	lock   sync.RWMutex
-	client *mordorClient
+	lock sync.RWMutex
+	//client *mordorClient
 }
 
 // backend function which returns mordorBackend object
@@ -41,7 +41,7 @@ func backend() *mordorBackend {
 
 		Help: strings.TrimSpace(backendHelp),
 		// pathAppend() is the helper function in Vault SDK to handle list of paths into same list
-		Paths: framework.pathAppend(),
+		Paths: framework.PathAppend(),
 		// this is setup a skeleton structure of secret
 		// https://github.com/hashicorp/vault/blob/main/sdk/framework/secret.go#L11-L40
 		Secrets: []*framework.Secret{},
@@ -59,7 +59,7 @@ func backend() *mordorBackend {
 func (b *mordorBackend) reset() {
 	b.lock.Lock()
 	defer b.lock.Unlock()
-	b.client = nil
+	//b.client = nil
 }
 
 // invalidate method which call reset to reset configuration
