@@ -4,7 +4,7 @@ package main
 import (
 	"os"
 
-	mordor "github.com/basingh/vault-custom-support-plugin"
+	//mordor "github.com/basingh/vault-custom-support-plugin"
 	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/vault/api"
 	"github.com/hashicorp/vault/sdk/plugin"
@@ -29,7 +29,7 @@ func main() {
 	// In this case we pass factory of mordor backend framework
 
 	err := plugin.Serve(&plugin.ServeOpts{
-		BackendFactoryFunc: mordor.Factory,
+		BackendFactoryFunc: Factory,
 		TLSProviderFunc:    tlsProviderFunc,
 	})
 
