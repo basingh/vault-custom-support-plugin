@@ -11,7 +11,7 @@ import (
 
 // factory function to setup a backend in vault
 // this is mandatory function and should include call to setup backend
-func Factory(ctx context.Context, conf *logical.BackendConfig) (logical.Backend, string) {
+func Factory(ctx context.Context, conf *logical.BackendConfig) (logical.Backend, error) {
 	b := backend()
 	if err := b.Setup(ctx, conf); err != nil {
 		return nil, err
@@ -23,7 +23,6 @@ func Factory(ctx context.Context, conf *logical.BackendConfig) (logical.Backend,
 
 type mordorBackend struct {
 	*framework.Backend
-	// check what RWMutex do?
 	// calling https://pkg.go.dev/sync#RWMutex.
 	lock sync.RWMutex
 	//client *mordorClient
@@ -67,6 +66,69 @@ func (b *mordorBackend) invalidate(ctx context.Context, key string) {
 	if key == "config" {
 		b.reset()
 	}
+}
+
+// Based on https://github.com/hashicorp/vault/blob/main/sdk/framework/path.go we will not setup operations on this path
+// read, write and delete
+
+func (b *mordorBackend) paths() []*framework.Path {
+	return []*framework.Path{
+		{
+			Pattern: framework.MatchAllRegex("path"),
+
+			Fields: map[string]*framework.FieldSchema{
+				"path": {
+					Type:        framework.TypeString,
+					Description: "Defining path of secret",
+				},
+			},
+
+			Operations: map[logical.Operation]framework.OperationHandler{
+				logical.ReadOperation: &framework.PathOperation{
+					Callback: b.handleRead,
+					Summary:  "Read secrets",
+				},
+				// error due to https://github.com/hashicorp/vault/blob/main/sdk/framework/backend.go#L111 is looking for FieldData
+				// data coming from request, need to know how to pass these hardcoded data to this func
+				// there are some ideas here to push it directly physical storage https://github.com/hashicorp/vault/blob/main/sdk/logical/storage_inmem.go#L37-L45
+				// using https://github.com/hashicorp/vault/blob/main/sdk/physical/entry.go
+				logical.UpdateOperation: &framework.PathOperation{
+					Callback: b.handleWrite,
+					Summary:  "Update secret on path",
+				},
+				logical.CreateOperation: &framework.PathOperation{
+					Callback: b.handleWrite,
+					Summary:  "Write secret on path",
+				},
+				logical.DeleteOperation: &framework.PathOperation{
+					Callback: b.handleDelete,
+					Summary:  "Delete secret from path",
+				},
+			},
+			//ExistenceCheck: b.HandleExistenceCheck(),
+		},
+	}
+}
+
+// handleWrite operation to write on the path
+
+func (b *mordorBackend) handleWrite(ctx context.Context, req *logical.Request, _ *framework.FieldData) (*logical.Response, error) {
+	// store kv pair in required path
+
+	entry := &logical.StorageEntry{
+		Key:      "myKey",
+		Value:    []byte("123"),
+		SealWrap: false,
+	}
+	if err := req.Storage.Put(ctx, entry); err != nil {
+		return nil, err
+	}
+	resp := &logical.Response{
+		Data: map[string]interface{}{
+			entry.Key: entry,
+		},
+	}
+	return resp, nil
 }
 
 const backendHelp = `
