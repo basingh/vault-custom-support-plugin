@@ -40,7 +40,9 @@ func backend() *mordorBackend {
 
 		Help: strings.TrimSpace(backendHelp),
 		// pathAppend() is the helper function in Vault SDK to handle list of paths into same list
-		Paths: framework.PathAppend(),
+		Paths: framework.PathAppend(
+			b.paths(),
+		),
 		// this is setup a skeleton structure of secret
 		// https://github.com/hashicorp/vault/blob/main/sdk/framework/secret.go#L11-L40
 		Secrets: []*framework.Secret{},
@@ -84,10 +86,10 @@ func (b *mordorBackend) paths() []*framework.Path {
 			},
 
 			Operations: map[logical.Operation]framework.OperationHandler{
-				logical.ReadOperation: &framework.PathOperation{
-					Callback: b.handleRead,
-					Summary:  "Read secrets",
-				},
+				//logical.ReadOperation: &framework.PathOperation{
+				//	Callback: b.handleRead,
+				//	Summary:  "Read secrets",
+				//},
 				// error due to https://github.com/hashicorp/vault/blob/main/sdk/framework/backend.go#L111 is looking for FieldData
 				// data coming from request, need to know how to pass these hardcoded data to this func
 				// there are some ideas here to push it directly physical storage https://github.com/hashicorp/vault/blob/main/sdk/logical/storage_inmem.go#L37-L45
@@ -100,10 +102,10 @@ func (b *mordorBackend) paths() []*framework.Path {
 					Callback: b.handleWrite,
 					Summary:  "Write secret on path",
 				},
-				logical.DeleteOperation: &framework.PathOperation{
-					Callback: b.handleDelete,
-					Summary:  "Delete secret from path",
-				},
+				//	logical.DeleteOperation: &framework.PathOperation{
+				//		Callback: b.handleDelete,
+				//		Summary:  "Delete secret from path",
+				//	},
 			},
 			//ExistenceCheck: b.HandleExistenceCheck(),
 		},
@@ -112,11 +114,13 @@ func (b *mordorBackend) paths() []*framework.Path {
 
 // handleWrite operation to write on the path
 
-func (b *mordorBackend) handleWrite(ctx context.Context, req *logical.Request, _ *framework.FieldData) (*logical.Response, error) {
+func (b *mordorBackend) handleWrite(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	// store kv pair in required path
 
+	path := data.Get("path").(string)
+
 	entry := &logical.StorageEntry{
-		Key:      "myKey",
+		Key:      "myKey" + path,
 		Value:    []byte("123"),
 		SealWrap: false,
 	}
