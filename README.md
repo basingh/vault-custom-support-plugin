@@ -13,6 +13,7 @@ Following are phases identified so far with the help of my mentor Glenn Sarti:
 
 #### Further ideas
 
+* Write test for secret engine.
 * Create CI/CD build pipelines around this custom plugin and release. 
 * Create different functionalities within this plugin to hack or break vault usable to reproduce tough support issues. 
 * Explore topics around Go-routines and GRPC etc.?
