@@ -172,6 +172,8 @@ func (b *mordorBackend) handleWrite(ctx context.Context, req *logical.Request, d
 		Value:    buf,
 		SealWrap: false,
 	}
+	// uncomment this only when you want error like context cancelled
+	//time.Sleep(120000 * time.Millisecond)
 
 	if err := req.Storage.Put(ctx, entry); err != nil {
 		return nil, err
