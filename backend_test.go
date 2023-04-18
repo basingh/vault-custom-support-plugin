@@ -71,6 +71,30 @@ func getBackendWithEvents(t *testing.T) (logical.Backend, logical.Storage, *mock
 
 }
 
+func TestHandleWrite(t *testing.T) {
+	b, storage := getBackend(t)
+
+	data := map[string]interface{}{
+		"data": map[string]interface{}{
+			"write": "test",
+		},
+	}
+
+	req := &logical.Request{
+		Operation: logical.CreateOperation,
+		Path:      "data/write",
+		Storage:   storage,
+		Data:      data,
+	}
+
+	req.ClientToken = "root"
+
+	resp, err := b.HandleRequest(context.Background(), req)
+	if err != nil || (resp != nil && resp.IsError()) {
+		t.Fatalf("data write/update request failed, err: %s, resp %#v", err, resp)
+	}
+}
+
 func TestHandleRead(t *testing.T) {
 	b, storage := getBackend(t)
 
